@@ -447,6 +447,7 @@ wss.on('connection', (ws) => {
   let room = null;
 
   ws.on('message', (data) => {
+    console.log("Received:", data);
     const msg = JSON.parse(data);
 
     if (msg.type === 'joinRoom') {
