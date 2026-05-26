@@ -590,8 +590,6 @@ wss.on('connection', (ws) => {
     }
   });
 });
-
-function uuidv4() {
   // Start the server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
