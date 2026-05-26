@@ -127,7 +127,9 @@ app.get('/', (req, res) => {
   </div>
 
   <script>
-    const ws = new WebSocket(\`ws://\${window.location.host}\`);
+    const ws = new WebSocket(
+  (window.location.protocol === 'https:' ? 'wss://' : 'ws://') + window.location.host
+);
     let playerId, playerName, roomId, isRep = false, currentTeam = null;
 
     ws.onopen = () => console.log('Connected');
@@ -146,7 +148,7 @@ app.get('/', (req, res) => {
       playerName = document.getElementById('playerName').value;
       roomId = document.getElementById('roomId').value || uuidv4();
       if (!playerName) return alert('Enter a name');
-      ws.send(JSON.stringify({ type: 'joinRoom', roomId, playerName }));
+     sendWhenReady(JSON.stringify({ type: 'joinRoom', roomId, playerName }));
       document.getElementById('lobbyScreen').classList.remove('active');
       document.getElementById('roomScreen').classList.add('active');
       document.getElementById('roomIdDisplay').textContent = roomId;
