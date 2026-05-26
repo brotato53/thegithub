@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Triangle Stock Game</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+
+    <!-- Lobby Screen -->
+    <div id="lobbyScreen" class="screen active">
+      <h1>Triangle Stock Game</h1>
+      <div class="input-group">
+        <input type="text" id="playerName" placeholder="Enter your name">
+      </div>
+      <div class="input-group">
+        <input type="text" id="roomId" placeholder="Enter room ID (or leave blank for new)">
+      </div>
+      <button onclick="joinRoom()">Join Game</button>
+    </div>
+
+    <!-- Room Screen -->
+    <div id="roomScreen" class="screen">
+      <h1>Room: <span id="roomIdDisplay"></span></h1>
+      <h2>Players</h2>
+      <div id="playersList"></div>
+      <button id="startBtn" onclick="startGame()" style="display:none;">Start Game</button>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="gameScreen" class="screen">
+      <h1>Triangle Stock Game</h1>
+
+      <div class="tab-buttons">
+        <button class="tab-btn active" data-tab="stocksTab">Stocks</button>
+        <button class="tab-btn" data-tab="shopTab">Shop</button>
+        <button class="tab-btn" data-tab="teamTab">Team</button>
+      </div>
+
+      <div id="stocksTab" class="tab-content active">
+        <h2>Stocks</h2>
+        <div id="stocksList" class="grid"></div>
+      </div>
+
+      <div id="shopTab" class="tab-content">
+        <h2>Power‑Up Shop</h2>
+        <div id="shopList" class="grid"></div>
+      </div>
+
+      <div id="teamTab" class="tab-content">
+        <h2>Your Team</h2>
+        <div id="teamInfo"></div>
+      </div>
+    </div>
+
+    <!-- Podium Screen -->
+    <div id="podiumScreen" class="screen">
+      <h1>Final Results</h1>
+      <div class="podium">
+        <div id="gold" class="podium-item gold"></div>
+        <div id="silver" class="podium-item silver"></div>
+        <div id="bronze" class="podium-item bronze"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="client.js"></script>
+</body>
+</html>
