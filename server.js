@@ -591,8 +591,153 @@ wss.on('connection', (ws) => {
   });
 });
  
+wss.on('connection', (ws) => {
+  const playerId = uuidv4();
+  let room = null;
 
-// Start the server
-server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  ws.on('message', (data) => {
+    const msg = JSON.parse(data);
+
+    if (msg.type === 'joinRoom') {
+      const { roomId, playerName } = msg;
+      if (!rooms[roomId]) {
+        rooms[roomId] = {
+          id: roomId,
+          hostId: playerId,
+          players: {},
+          teams: {},
+          state: { phase: 'lobby', round: 1, currentQuestion: null, buyTimer: 0, tradeTimer: 0 }
+        };
+        initTeams(rooms[roomId]);
+      }
+      room = rooms[roomId];
+      room.players[playerId] = { id: playerId, name: playerName, ws, team: null, isRep: false };
+      broadcast(room, { type: 'stateUpdate', room: getPublicRoomState(room) });
+    }
+
+    if (msg.type === 'startGame' && playerId === room.hostId) {
+      assignTeams(room);
+      room.state.phase = 'question';
+      room.state.round = 1;
+      startNextQuestion(room);
+    }
+
+    if (msg.type === 'submitAnswer') {
+      const player = room.players[playerId];
+      if (!player || !player.isRep) return;
+      if (room.state.phase !== 'question') return;
+      const team = room.teams[player.team];
+      const q = room.state.currentQuestion;
+      let ans = (msg.answer || '').trim().toUpperCase();
+      let correct = ans === q.answer.toUpperCase();
+      if (!correct && team.powerUps.accuracyLockNext) {
+        correct = true;
+        team.powerUps.accuracyLockNext = false;
+      }
+      if (correct) {
+        let points = 100;
+        if (team.powerUps.teamBoostRounds > 0) points = Math.round(points * 1.2);
+        if (team.powerUps.teamRallyNext) {
+          points += 50;
+          team.powerUps.teamRallyNext = false;
+        }
+        team.points += points;
+        team.coins += 1;
+      }
+      goToRevealPhase(room);
+    }
+
+    if (msg.type === 'buyStock') {
+      const player = room.players[playerId];
+      if (!player || !player.isRep || room.state.phase !== 'buy') return;
+      const team = room.teams[player.team];
+      const { stock } = msg;
+      const cost = STOCKS[stock].value;
+      if (team.points >= cost) {
+        team.points -= cost;
+        team.stocks[stock]++;
+        broadcast(room, { type: 'stateUpdate', room: getPublicRoomState(room) });
+      }
+    }
+
+    if (msg.type === 'sellStock') {
+      const player = room.players[playerId];
+      if (!player || !player.isRep || room.state.phase !== 'buy') return;
+      const team = room.teams[player.team];
+      const { stock } = msg;
+      if (team.stocks[stock] > 0) {
+        const value = Math.round(STOCKS[stock].value * 0.8);
+        team.points += value;
+        team.stocks[stock]--;
+        broadcast(room, { type: 'stateUpdate', room: getPublicRoomState(room) });
+      }
+    }
+
+    if (msg.type === 'buyPowerUp') {
+      const player = room.players[playerId];
+      if (!player || !player.isRep || room.state.phase !== 'buy') return;
+      const team = room.teams[player.team];
+      const { powerUp, targetStock } = msg;
+      const COSTS = { TEAM_BOOST: 5, STOCK_FREEZE: 5, STOCK_SHIELD: 5, MARKET_PEEK: 3, TIME_BUBBLE: 3, TEAM_RALLY: 4, ACCURACY_LOCK: 4 };
+      const cost = COSTS[powerUp];
+      if (team.coins < cost) return;
+      team.coins -= cost;
+      switch (powerUp) {
+        case 'TEAM_BOOST':
+          team.powerUps.teamBoostRounds = 3;
+          break;
+        case 'STOCK_FREEZE':
+          team.powerUps.stockFreezeRounds = 3;
+          team.powerUps.stockFreezeTarget = targetStock || '345R';
+          break;
+        case 'STOCK_SHIELD':
+          team.powerUps.stockShieldRounds = 3;
+          break;
+        case 'MARKET_PEEK':
+          ws.send(JSON.stringify({ type: 'marketPeek', stocks: STOCKS }));
+          team.powerUps.marketPeekActive = false;
+          break;
+        case 'TIME_BUBBLE':
+          team.powerUps.timeBubbleActive = true;
+          break;
+        case 'TEAM_RALLY':
+          team.powerUps.teamRallyNext = true;
+          break;
+        case 'ACCURACY_LOCK':
+          team.powerUps.accuracyLockNext = true;
+          break;
+      }
+      broadcast(room, { type: 'stateUpdate', room: getPublicRoomState(room) });
+    }
+
+    if (msg.type === 'nextRound' && playerId === room.hostId) {
+      applyStockMovement(room);
+      if (room.state.round === 10 || room.state.round === 20) {
+        goToTradePhase(room);
+        return;
+      }
+      if (room.state.round >= 30) {
+        endGameToPodium(room);
+        return;
+      }
+      room.state.round++;
+      Object.values(room.teams).forEach(t => {
+        if (t.powerUps.teamBoostRounds > 0) t.powerUps.teamBoostRounds--;
+        if (t.powerUps.stockFreezeRounds > 0) t.powerUps.stockFreezeRounds--;
+        if (t.powerUps.stockShieldRounds > 0) t.powerUps.stockShieldRounds--;
+      });
+      startNextQuestion(room);
+    }
+  });
+
+  ws.on('close', () => {
+    if (room && room.players[playerId]) {
+      delete room.players[playerId];
+      if (Object.keys(room.players).length === 0) {
+        delete rooms[room.id];
+      } else {
+        broadcast(room, { type: 'stateUpdate', room: getPublicRoomState(room) });
+      }
+    }
+  });
 });
