@@ -1,0 +1,83 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: radial-gradient(circle at 50% 50%, #1a1a2e 0%, #0f0f1e 100%);
+  color: #e0e0e0;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.container { max-width: 1200px; margin: 0 auto; }
+
+.screen { display: none; }
+.screen.active { display: block; }
+
+h1 { text-align: center; margin-bottom: 30px; color: #00d4ff; }
+h2 { margin-bottom: 20px; color: #00d4ff; }
+
+.input-group { margin-bottom: 15px; }
+
+input, button {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  font-size: 14px;
+}
+
+input {
+  background: #2a2a3e;
+  color: #e0e0e0;
+  border: 1px solid #00d4ff;
+}
+
+button {
+  background: #00d4ff;
+  color: #000;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s;
+}
+
+button:hover { background: #00a8cc; transform: scale(1.05); }
+button:disabled { background: #666; cursor: not-allowed; transform: none; }
+
+.team-card {
+  background: linear-gradient(135deg, #2a2a3e 0%, #1a1a2e 100%);
+  border: 2px solid #00d4ff;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 10px;
+  color: #e0e0e0;
+}
+
+.team-card strong { color: #00d4ff; }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 15px;
+}
+
+.tab-buttons { display: flex; gap: 10px; margin-bottom: 20px; }
+
+.tab-btn {
+  padding: 8px 15px;
+  background: #2a2a3e;
+  border: 2px solid #00d4ff;
+  color: #00d4ff;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: all 0.3s;
+}
+
+.tab-btn.active { background: #00d4ff; color: #000; }
+
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+.podium { text-align: center; }
+.podium-item { margin: 20px 0; font-size: 18px; }
+.podium-item.gold { color: #ffd700; }
+.podium-item.silver { color: #c0c0c0; }
+.podium-item.bronze { color: #cd7f32; }
