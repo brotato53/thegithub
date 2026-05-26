@@ -66,6 +66,25 @@
     </div>
 
   </div>
+<script>
+function showStatus(msg) {
+  const el = document.createElement("div");
+  el.textContent = msg;
+  el.style.padding = "4px";
+  el.style.background = "#222";
+  el.style.color = "#0f0";
+  el.style.fontSize = "14px";
+  document.body.appendChild(el);
+}
+
+const ws = new WebSocket(
+  (window.location.protocol === 'https:' ? 'wss://' : 'ws://') + window.location.host
+);
+
+ws.addEventListener('open', () => showStatus("WS OPEN"));
+ws.addEventListener('error', () => showStatus("WS ERROR"));
+ws.addEventListener('close', () => showStatus("WS CLOSED"));
+</script>
 
   <script src="client.js"></script>
 </body>
