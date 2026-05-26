@@ -593,6 +593,5 @@ wss.on('connection', (ws) => {
  
 
 // Start the server
-const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
 });
